@@ -1,0 +1,16 @@
+# Ignore build system
+build/
+devel/
+install/
+logs/
+
+# Ignore catkin auto files
+*.pyc
+*.swp
+*.swo
+.DS_Store
+
+# Do NOT ignore package code
+!vacuum_smach/
+!delivery_robot/
+!turtle_rectangle_pkg/

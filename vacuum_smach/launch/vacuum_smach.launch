@@ -1,0 +1,9 @@
+<launch>
+
+    <node pkg="vacuum_smach"
+          type="vacuum_smach_node.py"
+          name="smach_controller"
+          output="screen">
+    </node>
+
+    </launch>

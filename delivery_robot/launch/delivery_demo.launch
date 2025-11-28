@@ -1,0 +1,10 @@
+<launch>
+  <!-- Service node -->
+  <node pkg="delivery_robot" type="location_server.py" name="location_server" output="screen" />
+
+  <!-- Action server node -->
+  <node pkg="delivery_robot" type="motion_action_server.py" name="motion_action_server" output="screen" />
+
+  <!-- Client node -->
+  <node pkg="delivery_robot" type="delivery_client.py" name="delivery_client" output="screen" />
+</launch>

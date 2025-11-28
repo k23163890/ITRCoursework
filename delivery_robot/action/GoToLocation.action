@@ -1,0 +1,5 @@
+string location_name
+---
+bool success
+---
+geometry_msgs/Pose2D current_pose

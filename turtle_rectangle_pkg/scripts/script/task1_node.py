@@ -6,7 +6,7 @@ import math
 
 pose = Pose()
 
-def pose_cb(msg):
+def pose_msg(msg):
     global pose
     pose = msg
 
@@ -89,7 +89,7 @@ def open_loop_rectangle():
 
 if __name__ == "__main__":
     rospy.init_node("turtle_rectangle_node")
-    rospy.Subscriber("/turtle1/pose", Pose, pose_cb)
+    rospy.Subscriber("/turtle1/pose", Pose, pose_msg)
     rospy.sleep(0.5)
     closed_loop_corner()
     open_loop_rectangle()

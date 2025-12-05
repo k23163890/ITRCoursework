@@ -110,8 +110,12 @@ class SearchObjectState(smach.State):
             return 'preempted'
         
         if self.yolo_client is None:
-            rospy.wait_for_service("/detect_frame", timeout=2.0)
-            self.yolo_client = rospy.ServiceProxy("/detect_frame", YOLOFrame)
+            try:
+                rospy.wait_for_service("/detect_frame", timeout=5.0)
+                self.yolo_client = rospy.ServiceProxy("/detect_frame", YOLOFrame)
+            except rospy.ROSException:
+                rospy.logerr("YOLO /detect_frame service not available!")
+                return 'not_found'  # Return not_found if service unavailable
         
         try:
             response = self.yolo_client()

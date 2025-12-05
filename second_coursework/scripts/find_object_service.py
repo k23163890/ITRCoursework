@@ -12,9 +12,15 @@ class FindObjectService:
     def __init__(self):
         # Don't init node here - main_node does it
         rospy.loginfo("Waiting for /detect_frame service...")
-        rospy.wait_for_service("/detect_frame")
-        self.yolo_client = rospy.ServiceProxy("/detect_frame", YOLOFrame)
-        rospy.loginfo("Connected to YOLO detection service.")
+        try:
+            rospy.wait_for_service("/detect_frame", timeout=rospy.Duration(10.0))
+            self.yolo_client = rospy.ServiceProxy("/detect_frame", YOLOFrame)
+            rospy.loginfo("Connected to YOLO detection service.")
+        except rospy.ROSException:
+            rospy.logerr("ERROR: /detect_frame service not available!")
+            rospy.logerr("Make sure the YOLO detection node is running.")
+            rospy.logerr("You may need to launch a YOLO node or check if it's included in your launch file.")
+            raise
         
         # Client to stop check_rules action
         self.check_rules_client = None

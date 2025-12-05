@@ -1,4 +1,10 @@
 <launch>
+    <!-- YOLO Detection Node - provides /detect_frame service -->
+    <node pkg="YOLOObjectDetection" type="YoloNavigationNode.py" name="yolo_detection_node" output="screen">
+        <param name="coco_data" value="$(find YOLOObjectDetection)/config/coco.data"/>
+    </node>
+    
+    <!-- Main coursework node -->
     <node pkg="second_coursework" type="main_node.py" name="second_coursework_main" output="screen"/>
 </launch>
 

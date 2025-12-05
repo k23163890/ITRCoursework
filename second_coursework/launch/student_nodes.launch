@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="second_coursework" type="find_object_service.py" name="find_object_service_node" output="screen"/>
+</launch>
+

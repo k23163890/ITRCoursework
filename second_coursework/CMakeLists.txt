@@ -13,13 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   actionlib_msgs
   YOLOObjectDetection
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
-## Uncomment this if the package has a setup.py. This macro ensures
+## Uncomment this if the package has a setup.py.
+## This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
@@ -74,6 +76,7 @@ generate_messages(
   std_msgs
   actionlib_msgs
   YOLOObjectDetection
+  sensor_msgs
 )
 
 ################################################
@@ -108,7 +111,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES second_coursework
-  CATKIN_DEPENDS rospy std_msgs actionlib_msgs message_runtime YOLOObjectDetection
+  CATKIN_DEPENDS rospy std_msgs actionlib_msgs message_runtime YOLOObjectDetection sensor_msgs
 #  DEPENDS system_lib
 )
 

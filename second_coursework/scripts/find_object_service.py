@@ -2,16 +2,22 @@
 # coding=utf-8
 
 import rospy
+import actionlib
 from second_coursework.srv import FindObject, FindObjectResponse
+from second_coursework.msg import CheckRulesAction
 from YOLOObjectDetection.srv import YOLOFrame
 
 
 class FindObjectService:
     def __init__(self):
+        # Don't init node here - main_node does it
         rospy.loginfo("Waiting for /detect_frame service...")
         rospy.wait_for_service("/detect_frame")
         self.yolo_client = rospy.ServiceProxy("/detect_frame", YOLOFrame)
         rospy.loginfo("Connected to YOLO detection service.")
+        
+        # Client to stop check_rules action
+        self.check_rules_client = None
         
         self.service = rospy.Service("/find_object", FindObject, self.find_object_callback)
         rospy.loginfo("FindObject service is ready.")
@@ -19,6 +25,7 @@ class FindObjectService:
     def find_object_callback(self, request):
         """
         Service callback that checks if the requested object is detected in the current frame.
+        Stops check_rules action when called.
         
         Args:
             request: FindObject request containing object_name (string)
@@ -27,6 +34,18 @@ class FindObjectService:
             FindObjectResponse with request_accepted (bool)
         """
         response = FindObjectResponse()
+        
+        # Stop check_rules action if it's running
+        try:
+            if self.check_rules_client is None:
+                self.check_rules_client = actionlib.SimpleActionClient('/check_rules', CheckRulesAction)
+            
+            if self.check_rules_client.wait_for_server(timeout=rospy.Duration(0.5)):
+                if self.check_rules_client.get_state() == actionlib.GoalStatus.ACTIVE:
+                    rospy.loginfo("Stopping check_rules action...")
+                    self.check_rules_client.cancel_goal()
+        except Exception as e:
+            rospy.logdebug(f"Could not stop check_rules: {e}")
         
         try:
             # Get detections from YOLO service
@@ -52,7 +71,12 @@ class FindObjectService:
 
 
 if __name__ == '__main__':
-    rospy.init_node('find_object_service_node')
-    FindObjectService()
-    rospy.spin()
+    try:
+        rospy.init_node('find_object_service_node')
+        rospy.loginfo("Waiting 10 seconds for localization...")
+        rospy.sleep(10.0)
+        FindObjectService()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
 

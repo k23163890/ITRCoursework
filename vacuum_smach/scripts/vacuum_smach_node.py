@@ -39,10 +39,14 @@ class MovingState(smach.State):
         rate = rospy.Rate(10)
 
         while (rospy.Time.now() - start_time).to_sec() < self.move_duration:
-            if self.battery_low():    return 'low_battery'
-            if self.dirt_detected():  return 'dirt'
-            if self.laser_obstacle(): return 'obstacle'
-            if self.obstacle_event(): return 'obstacle'
+            if self.battery_low():
+                return 'low_battery'
+            if self.dirt_detected():  
+                return 'dirt'
+            if self.laser_obstacle(): 
+                return 'obstacle'
+            if self.obstacle_event(): 
+                return 'obstacle'
 
             forward = Twist(
                 Vector3(self.linear_speed, 0, 0),

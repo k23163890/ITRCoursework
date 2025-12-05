@@ -4,18 +4,32 @@ from geometry_msgs.msg import Pose2D
 from delivery_bot.srv import GetLocation, GetLocationResponse
 
 def handle_get_location(req):
-    locations = {
-        "kitchen": Pose2D(x=10.7, y=4.3, theta=0.0),
-        "living_room": Pose2D(x=10.4, y=8.9, theta=1.57),
-        "person": Pose2D(x=1.0, y=0.0, theta=0.0),
-    }
-
-    if req.location_name in locations:
-        rospy.loginfo(f"[Service] Returning coordinates for {req.location_name}")
-        return GetLocationResponse(locations[req.location_name])
+    if req.location_name == "kitchen":
+        rospy.loginfo("Found kitchen coords")
+        x = 10.7
+        y = 4.3
+        th = 0.0
+    elif req.location_name == "living_room":
+        x = 10.4
+        y = 8.9
+        th = 1.57
+    elif req.location_name == "person":
+        x = 1.0
+        y = 0.0
+        th = 0.0
     else:
-        rospy.logwarn(f"[Service] Unknown location: {req.location_name}")
-        return GetLocationResponse(Pose2D())
+        rospy.logwarn("Unknown location")
+        x = 0.0
+        y = 0.0
+        th = 0.0
+        
+    pos = Pose2D()
+    pos.x = x
+    pos.y = y
+    pos.theta = th
+
+    return GetLocationResponse(pos)
+
 
 def main():
     rospy.init_node('location_server')

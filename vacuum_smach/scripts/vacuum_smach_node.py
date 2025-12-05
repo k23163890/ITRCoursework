@@ -19,10 +19,6 @@ def laser_callback(scan):
     global LASER_DATA
     LASER_DATA = scan
 
-
-# ----------------------------------------------------------------------
-#  MOVING STATE
-# ----------------------------------------------------------------------
 class MovingState(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['obstacle', 'low_battery', 'dirt', 'succeeded'])

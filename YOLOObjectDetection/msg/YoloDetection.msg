@@ -1,6 +1,6 @@
 string name
 float32 confidence
-uint32 bbox_x
-uint32 bbox_y
-uint32 width
-uint32 height
+int32 bbox_x
+int32 bbox_y
+int32 width
+int32 height

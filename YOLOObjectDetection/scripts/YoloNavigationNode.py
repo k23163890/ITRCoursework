@@ -30,13 +30,9 @@ class YOLOv4ROSITR:
             )
         )
 
-        rospy.Subscriber("/usb_cam/image_raw",
-                         Image,
-                         self.img_callback)
+        rospy.Subscriber("/usb_cam/image_raw",Image,self.img_callback)
 
-        self.yolo_srv = rospy.Service("/detect_frame",YOLOFrame,
-            self.yolo_service
-        )
+        self.yolo_srv = rospy.Service("/detect_frame",YOLOFrame,self.yolo_service)
 
         self.annotated_pub = rospy.Publisher("/yolo/annotated",Image,queue_size=1)
 

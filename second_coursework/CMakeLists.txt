@@ -51,16 +51,17 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+    YoloDetection.msg
+)
+
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   FindObject.srv
+  YOLOFrame.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -108,12 +109,16 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES second_coursework
-  CATKIN_DEPENDS rospy std_msgs actionlib_msgs message_runtime YOLOObjectDetection sensor_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS
+    rospy
+    std_msgs
+    actionlib_msgs
+    message_runtime
 )
+
 
 ###########
 ## Build ##
@@ -168,10 +173,22 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/find_object_service.py
   scripts/check_rules_action_server.py
-  scripts/find_object_action_server.py
-  scripts/main_node.py
+  scripts/check_rules_action.py
+  scripts/movement_utils.py
+  scripts/yolo_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+
+# Install the camera simulator binary (ELF)
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/itr_cw_CS_2546
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE
+              GROUP_EXECUTE GROUP_READ
+              WORLD_EXECUTE WORLD_READ
+)
+
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 from geometry_msgs.msg import Pose2D
-from delivery_bot.srv import GetLocation, GetLocationResponse
+from delivery_robot.srv import GetLocation, GetLocationResponse
 
 def handle_get_location(req):
     if req.location_name == "kitchen":

@@ -5,8 +5,8 @@ from geometry_msgs.msg import PoseStamped, Pose2D, Quaternion
 from tf.transformations import quaternion_from_euler
 from nav_msgs.msg import Odometry
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from delivery_bot.msg import GoToLocationAction, GoToLocationResult, LookAtAction, LookAtResult
-from delivery_bot.srv import GetLocation
+from delivery_robot.msg import GoToLocationAction, GoToLocationResult, LookAtAction, LookAtResult
+from delivery_robot.srv import GetLocation
 import math
 
 
@@ -27,11 +27,11 @@ class MotionActionServer:
 
 
         self.goto_server = actionlib.SimpleActionServer(
-            "goto_location", GoToLocationAction, self.execute_goto, auto_start=False
+            "goto_location", GoToLocationAction, self.GoToLocation, auto_start=False
         )
 
         self.lookat_server = actionlib.SimpleActionServer(
-            "look_at", LookAtAction, self.execute_lookat, auto_start=False
+            "look_at", LookAtAction, self.lookAt, auto_start=False
         )
         rospy.loginfo("Custom action servers created")
         self.goto_server.start()
@@ -59,7 +59,7 @@ class MotionActionServer:
             self.move_base_client.wait_for_result()
 
 
-    def execute_goto(self, goal):
+    def GoToLocation(self, goal):
         response = self.get_location(goal.location_name)
 
         target = response.pose
@@ -85,7 +85,7 @@ class MotionActionServer:
             result = GoToLocationResult(success=False)
             self.goto_server.set_aborted(result)
 
-    def execute_lookat(self, goal):
+    def lookAt(self, goal):
         rospy.sleep(3)
         result = LookAtResult(success=True)
         self.lookat_server.set_succeeded(result)

@@ -2,4 +2,3 @@ geometry_msgs/Point target
 ---
 bool success
 ---
-float64 current_yaw

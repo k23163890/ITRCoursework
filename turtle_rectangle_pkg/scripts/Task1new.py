@@ -2,8 +2,8 @@
 import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
-from math import pi, sqrt, atan2
 import angles
+from math import pi, sqrt, atan2
 
 pose  = Pose()
 

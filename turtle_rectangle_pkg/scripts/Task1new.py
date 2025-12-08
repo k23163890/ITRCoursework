@@ -19,8 +19,9 @@ def closed_loop(pub, x, y, th):
     while not rospy.is_shutdown():
         dx = x - pose.x 
         dy = y - pose.y
-        if sqrt(dx**2 + dy**2) < 0.1: break
-        vel.linear.x = sqrt(dx**2 + dy**2)
+        dist = sqrt(dx**2 + dy**2)
+        if dist < 0.1: break
+        vel.linear.x = dist
         vel.angular.z = 4.0 * angles.shortest_angular_distance(pose.theta, atan2(dy, dx))
         pub.publish(vel)
         rate.sleep()

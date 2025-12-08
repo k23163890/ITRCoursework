@@ -4,18 +4,18 @@ from geometry_msgs.msg import Pose2D
 from delivery_robot.srv import GetLocation, GetLocationResponse
 
 def handle_get_location(req):
-    if req.locationName == "kitchen":
-        x = 6.0
-        y = 4.3
-        th = 0.0
+    if req.locationName == "garage":
+        x = 2.1
+        y = 9.4
+        th = -1.6
     elif req.locationName == "living_room":
-        x = 10.8
-        y = 3.13
+        x = 5.8
+        y = 6.2
         th = -2.3
     elif req.locationName == "person":
-        x = 6.0
-        y = 1.9
-        th = 0.0
+        x = 0.3
+        y = 8.9
+        th = -3.1
     else:
         rospy.logwarn("Unknown location")
         x = 0.0

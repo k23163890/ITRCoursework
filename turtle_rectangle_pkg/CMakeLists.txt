@@ -106,7 +106,7 @@ catkin_package()
 
 
 catkin_install_python(PROGRAMS
-  scripts/script/task1_node.py
+  scripts/Task1new.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

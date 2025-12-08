@@ -8,14 +8,14 @@ from delivery_robot.msg import GoToLocationAction, GoToLocationGoal, LookAtActio
 
 def go_to_kitchen(goto_client):
     rospy.loginfo("Going to KITCHEN...")
-    goto_client.send_goal(GoToLocationGoal(location_name="kitchen"))
+    goto_client.send_goal(GoToLocationGoal(locationName="kitchen"))
     goto_client.wait_for_result()
-    rospy.loginfo("IN KITCHEN")
+    rospy.loginfo("In Kitchen")
 
 
 def look_at_person(look_client):
     rospy.loginfo("Looking at PERSON...")
-    person = Point(x=3.0, y=1.0, z=0.0)
+    person = Point(x=6.0, y=1.9, z=0.0)
     look_client.send_goal(LookAtGoal(target=person))
     look_client.wait_for_result()
     rospy.loginfo("Looked at Person")
@@ -23,21 +23,22 @@ def look_at_person(look_client):
 
 def go_to_living_room(goto_client):
     rospy.loginfo("Going to LIVING ROOM...")
-    goto_client.send_goal(GoToLocationGoal(location_name="living_room"))
+    goto_client.send_goal(GoToLocationGoal(locationName="living_room"))
     goto_client.wait_for_result()
+    rospy.loginfo("In LivingRoom")
 
 
 def main():
-    rospy.init_node('delivery_client')
+    rospy.init_node('Client')
 
     rospy.loginfo("Creating action clients")
     goto_client = actionlib.SimpleActionClient('goto_location', GoToLocationAction)
     look_client = actionlib.SimpleActionClient('look_at', LookAtAction)
 
-    rospy.loginfo("Waiting for action servers...")
+    rospy.loginfo("Server Request made")
     goto_client.wait_for_server()
     look_client.wait_for_server()
-    rospy.loginfo("Connected to action servers.")
+    rospy.loginfo("Server Request passed")
 
     go_to_kitchen(goto_client)
 

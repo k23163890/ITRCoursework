@@ -52,7 +52,7 @@ def reach_corner(pub, rate):
 def closed_loop_corner():
     pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
     rate = rospy.Rate(50)
-    corner_x, corner_y = 3.0, 2.0
+    corner_x, corner_y = 3.0, 5.0
     while not rospy.is_shutdown():
         vals = doMaths(corner_x,corner_y)
         if vals[0] < 0.01:

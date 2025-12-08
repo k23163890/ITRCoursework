@@ -1,29 +1,26 @@
 #!/usr/bin/env python3
 import rospy
 import actionlib
-from geometry_msgs.msg import PoseStamped, Pose2D, Quaternion
+from geometry_msgs.msg import Pose2D, Quaternion
 from tf.transformations import quaternion_from_euler
 from nav_msgs.msg import Odometry
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from delivery_robot.msg import GoToLocationAction, GoToLocationResult, LookAtAction, LookAtResult
 from delivery_robot.srv import GetLocation
-import math
 
 
-class MotionActionServer:
+class Action:
     def __init__(self):
-        rospy.init_node("motion_action_server")
+        rospy.init_node("Action")
 
         self.subscribe_odom()
         rospy.loginfo("Odom messages subscribed")
 
-        rospy.wait_for_service("get_location")
-        self.get_location = rospy.ServiceProxy("get_location", GetLocation)
+        rospy.wait_for_service("location")
+        self.location = rospy.ServiceProxy("location", GetLocation)
         rospy.loginfo("Service client prepared")
 
-        self.move_base_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        self.move_base_client.wait_for_server()
-        rospy.loginfo("Connected to move base action server")
+        self.moveBase()
 
 
         self.goto_server = actionlib.SimpleActionServer(
@@ -44,6 +41,12 @@ class MotionActionServer:
         rospy.Subscriber("/odom", Odometry, self.odom_callback)
         self.current_pose = Pose2D()
 
+    def moveBase(self):
+        self.move_base_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        self.move_base_client.wait_for_server()
+        rospy.loginfo("Connected to move base action server")
+
+
     def odom_callback(self, msg):
         self.current_pose.x = msg.pose.pose.position.x
         self.current_pose.y = msg.pose.pose.position.y
@@ -60,7 +63,7 @@ class MotionActionServer:
 
 
     def GoToLocation(self, goal):
-        response = self.get_location(goal.location_name)
+        response = self.location(goal.locationName)
 
         target = response.pose
         mb_goal = MoveBaseGoal()
@@ -79,17 +82,17 @@ class MotionActionServer:
         state = self.move_base_client.get_state()
 
         if state == actionlib.GoalStatus.SUCCEEDED:
-            result = GoToLocationResult(success=True)
+            result = GoToLocationResult(passed=True)
             self.goto_server.set_succeeded(result)
         else:
-            result = GoToLocationResult(success=False)
+            result = GoToLocationResult(passed=False)
             self.goto_server.set_aborted(result)
 
     def lookAt(self, goal):
         rospy.sleep(3)
-        result = LookAtResult(success=True)
+        result = LookAtResult(passed=True)
         self.lookat_server.set_succeeded(result)
 
 
 if __name__ == "__main__":
-    MotionActionServer()
+    Action()

@@ -15,8 +15,7 @@ def go_to_garage(client):
 
 def look_at_person(look_client):
     rospy.loginfo("Looking at Person")
-    person = Point(x=0.3, y=8.9, z=0.0)
-    look_client.send_goal(LookAtGoal(target=person))
+    look_client.send_goal(LookAtGoal(target = Point(x=0.3, y=8.9, z=0.0)))
     look_client.wait_for_result()
     rospy.loginfo("Looked at Person")
 

@@ -55,7 +55,7 @@ class Action:
             rospy.loginfo("SUCCEEDED: Go to Location")
             self.goto_server.set_succeeded(GoToLocationResult())
         else:
-            rospy.loginfo("FAILED: Go to Location")
+            rospy.loginfo("FALED")
             self.goto_server.set_aborted(GoToLocationResult())
 
     def lookAt(self, goal):

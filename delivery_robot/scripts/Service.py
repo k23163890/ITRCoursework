@@ -12,10 +12,6 @@ def handler(req):
         x = 5.8
         y = 6.2
         th = -2.3
-    elif req.locationName == "person":
-        x = 0.3
-        y = 8.9
-        th = -3.1
     else:
         rospy.logwarn("Unknown location")
         x = 0.0

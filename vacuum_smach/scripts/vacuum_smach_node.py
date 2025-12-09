@@ -9,6 +9,7 @@ from std_srvs.srv import Empty, EmptyResponse
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Empty as EmptyMsg
 
+# Global flags
 LOW_BATTERY = False
 DIRT_FOUND = False
 OBSTACLE_FOUND = False
@@ -19,6 +20,9 @@ def laser_callback(scan):
     global LASER_DATA
     LASER_DATA = scan
 
+# ----------------------------------------------------------------------
+#  MOVING STATE
+# ----------------------------------------------------------------------
 class MovingState(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['obstacle', 'low_battery', 'dirt', 'succeeded'])
@@ -29,12 +33,13 @@ class MovingState(smach.State):
         self.angular_speed = 0.0
 
     def execute(self, _):
-        rospy.loginfo("State: MOVING")
+        rospy.loginfo("State: MOVING - moving forward")
 
         start_time = rospy.Time.now()
         rate = rospy.Rate(10)
 
         while (rospy.Time.now() - start_time).to_sec() < self.move_duration:
+            # Check for events
             if self.battery_low():
                 return 'low_battery'
             if self.dirt_detected():  
@@ -44,6 +49,7 @@ class MovingState(smach.State):
             if self.obstacle_event(): 
                 return 'obstacle'
 
+            # Move robot
             forward = Twist(
                 Vector3(self.linear_speed, 0, 0),
                 Vector3(0, 0, self.angular_speed)
@@ -51,6 +57,7 @@ class MovingState(smach.State):
             self.pub.publish(forward)
             rate.sleep()
 
+        # Stop before transition
         self.pub.publish(Twist())
         return 'succeeded'
     
@@ -60,7 +67,7 @@ class MovingState(smach.State):
         if LOW_BATTERY:
             LOW_BATTERY = False
             self.pub.publish(Twist())
-            rospy.loginfo("Battery low -> Charging")
+            rospy.loginfo(">>> TRANSITION: Battery low detected -> Switching to Charging")
             return True
 
     def dirt_detected(self):
@@ -68,7 +75,7 @@ class MovingState(smach.State):
         if DIRT_FOUND:
             DIRT_FOUND = False
             self.pub.publish(Twist())
-            rospy.loginfo("Dirt detected -> Spiral Clean")
+            rospy.loginfo(">>> TRANSITION: Dirt detected -> Switching to Spiral Clean")
             return True
 
     def obstacle_event(self):
@@ -76,7 +83,7 @@ class MovingState(smach.State):
         if OBSTACLE_FOUND:
             OBSTACLE_FOUND = False
             self.pub.publish(Twist())
-            rospy.loginfo("Obstacle event triggered")
+            rospy.loginfo(">>> TRANSITION: Manual Obstacle event triggered")
             return True
 
     def laser_obstacle(self):
@@ -94,11 +101,12 @@ class MovingState(smach.State):
         span = int(scan_width_deg * samples_per_deg / 2)
 
         slice_front = readings[center - span:center + span]
+        # Filter valid readings
         valid = [r for r in slice_front if 0.1 < r < 10.0]
 
         if valid and min(valid) < 0.5:
             self.pub.publish(Twist())
-            rospy.loginfo("Obstacle detected ahead (laser scan)")
+            rospy.loginfo(">>> TRANSITION: Laser detected obstacle < 0.5m ahead")
             return True
 
         return False
@@ -117,7 +125,7 @@ class TurningState(smach.State):
         self.max_angle = 135
 
     def execute(self, _):
-        rospy.loginfo("State: TURNING")
+        rospy.loginfo("State: TURNING - Analyzing scan to turn safely")
 
         global LASER_DATA
         rospy.sleep(0.3)
@@ -168,14 +176,18 @@ class TurningState(smach.State):
             turn_right = not (l > r)
             if abs(l - r) > 1.0:
                 angle = 110
-
+        
+        rospy.loginfo(f"Turn Decision: Right={turn_right}, Angle={angle}, Corner={corner}")
         return turn_right, angle, corner
 
     def _perform_turn(self, turn_right, angle, corner):
         """Rotate by the chosen angle, plus a small backup/forward if cornered."""
         if corner:
+            rospy.loginfo("Corner detected - Backing up first")
             self._backup()
 
+        direction_str = "Right" if turn_right else "Left"
+        rospy.loginfo(f"Rotating {direction_str} by {angle} degrees")
         self._rotate(turn_right, angle)
 
         if corner:
@@ -225,7 +237,7 @@ class SpiralingState(smach.State):
         self.duration = 5.0
 
     def execute(self, _):
-        rospy.loginfo("State: SPIRALING")
+        rospy.loginfo("State: SPIRALING - Spot cleaning dirt")
         t0 = rospy.Time.now()
         rate = rospy.Rate(10)
 
@@ -235,6 +247,7 @@ class SpiralingState(smach.State):
             rate.sleep()
 
         self.pub.publish(Twist())
+        rospy.loginfo("Spiraling complete - Dirt cleared")
         return 'dirt_cleared'
 
 
@@ -247,27 +260,31 @@ class ChargingState(smach.State):
         self.duration = 10.0
 
     def execute(self, _):
-        rospy.loginfo("State: CHARGING")
+        rospy.loginfo("State: CHARGING - Charging battery...")
         rospy.sleep(self.duration)
+        rospy.loginfo("Charging complete.")
         return 'charged'
 
 
 # ----------------------------------------------------------------------
-#  Service callbacks
+#  Service/Topic callbacks
 # ----------------------------------------------------------------------
-def low_battery_cb(_):
+def low_battery_cb(req):
     global LOW_BATTERY
     LOW_BATTERY = True
+    rospy.loginfo("SIGNAL RECEIVED: Low Battery (Service or Topic)")
     return EmptyResponse()
 
-def dirt_found_cb(_):
+def dirt_found_cb(req):
     global DIRT_FOUND
     DIRT_FOUND = True
+    rospy.loginfo("SIGNAL RECEIVED: Dirt Found (Service or Topic)")
     return EmptyResponse()
 
-def obstacle_found_cb(_):
+def obstacle_found_cb(req):
     global OBSTACLE_FOUND
     OBSTACLE_FOUND = True
+    rospy.loginfo("SIGNAL RECEIVED: Obstacle Found (Service or Topic)")
     return EmptyResponse()
 
 
@@ -276,11 +293,21 @@ def obstacle_found_cb(_):
 # ----------------------------------------------------------------------
 def main():
     rospy.init_node('vacuum_cleaner_smach')
+    rospy.loginfo("Vacuum SMACH Node Initialized")
+
+    # IMPORTANT: Subscribers must be created AFTER init_node
+    rospy.Subscriber("/sim/low_battery", EmptyMsg, low_battery_cb)
+    rospy.Subscriber("/sim/dirt_found", EmptyMsg, dirt_found_cb)
+    rospy.Subscriber("/sim/obstacle_found", EmptyMsg, obstacle_found_cb)
+    rospy.loginfo("Subscribers for /sim/ topics are ready")
 
     rospy.Subscriber('/base_scan', LaserScan, laser_callback)
+    
+    # Services
     rospy.Service('low_battery_trigger', Empty, low_battery_cb)
     rospy.Service('dirt_found_trigger', Empty, dirt_found_cb)
     rospy.Service('obstacle_trigger', Empty, obstacle_found_cb)
+    rospy.loginfo("Services (trigger) are ready")
 
     sm = smach.StateMachine(outcomes=['succeeded', 'aborted', 'preempted'])
 
@@ -318,13 +345,13 @@ def main():
 
     sis = smach_ros.IntrospectionServer('viewer', sm, '/SM_ROOT')
     sis.start()
+    
+    rospy.loginfo("Starting State Machine execution...")
     sm.execute()
+    
     rospy.spin()
     sis.stop()
 
 
 if __name__ == '__main__':
-    rospy.Subscriber("/sim/low_battery", EmptyMsg, low_battery_cb)
-    rospy.Subscriber("/sim/dirt_found", EmptyMsg, dirt_found_cb)
-    rospy.Subscriber("/sim/obstacle_found", EmptyMsg, obstacle_found_cb)
     main()

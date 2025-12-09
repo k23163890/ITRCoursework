@@ -12,7 +12,6 @@ def posenew(msg):
     pose = msg
 
 
-
 def closed_loop(pub, x, y, th):
     vel = Twist()
     rate = rospy.Rate(40)

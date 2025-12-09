@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   geometry_msgs
   message_generation
-  nav_msgs
   rospy
   std_msgs
 )
@@ -79,7 +78,6 @@ find_package(catkin REQUIRED COMPONENTS
     DEPENDENCIES
     actionlib_msgs
     geometry_msgs
-    nav_msgs
     std_msgs
   )
 
@@ -118,12 +116,11 @@ catkin_package(
     actionlib_msgs
     geometry_msgs
     message_runtime
-    nav_msgs
     rospy
     std_msgs
 #  INCLUDE_DIRS include
 #  LIBRARIES delivery_bot
-#  CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs message_generation nav_msgs rospy std_msgs
+#  CATKIN_DEPENDS actionlib actionlib_msgs geometry_msgs message_generation rospy std_msgs
 #  DEPENDS system_lib
 )
 

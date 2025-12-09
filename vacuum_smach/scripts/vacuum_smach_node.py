@@ -241,10 +241,13 @@ def main():
     sis.start()
     
     rospy.loginfo("Starting State Machine execution...")
-    sm.execute()
-    
-    rospy.spin()
-    sis.stop()
+    try:
+        sm.execute()
+    except rospy.ROSInterruptException:
+        pass
+    finally:
+        rospy.loginfo("Shutting down SMACH...")
+        sis.stop()
 
 if __name__ == '__main__':
     main()

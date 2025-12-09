@@ -73,7 +73,7 @@ class WanderActionServer:
         
         result = WanderResult()
 
-        while (rospy.Time.now() - start_time).to_sec() < goal.duration:
+        while (rospy.Time.now() - start_time).to_sec() < goal.duration and not rospy.is_shutdown():
             if self._as.is_preempt_requested():
                 rospy.loginfo('Action Preempted')
                 self.pub.publish(Twist()) 

@@ -1,5 +1,4 @@
 string locationName
 ---
-bool passed
 ---
 geometry_msgs/Pose2D current_pose

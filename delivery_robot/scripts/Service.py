@@ -3,7 +3,7 @@ import rospy
 from geometry_msgs.msg import Pose2D
 from delivery_robot.srv import GetLocation, GetLocationResponse
 
-def handle_get_location(req):
+def handler(req):
     if req.locationName == "garage":
         x = 2.1
         y = 9.4
@@ -32,7 +32,7 @@ def handle_get_location(req):
 
 def main():
     rospy.init_node('Service')
-    rospy.Service('location', GetLocation, handle_get_location)
+    rospy.Service('location', GetLocation, handler)
     rospy.spin()
 
 if __name__ == '__main__':

@@ -11,8 +11,10 @@ from delivery_robot.srv import GetLocation
 class Action:
     def __init__(self):
         rospy.init_node("Action")
-        self.goto_server = actionlib.SimpleActionServer("goto_location", GoToLocationAction, self.GoToLocation, auto_start=False)
-        self.lookat_server = actionlib.SimpleActionServer("look_at", LookAtAction, self.lookAt, auto_start=False)
+
+        self.goto_server = actionlib.SimpleActionServer("locationServer", GoToLocationAction, self.GoToLocation, auto_start=False)
+        self.lookat_server = actionlib.SimpleActionServer("lookAtServer", LookAtAction, self.lookAt, auto_start=False)
+
         rospy.wait_for_service("location")
         self.location = rospy.ServiceProxy("location", GetLocation)
         self.moveBase()
@@ -50,16 +52,16 @@ class Action:
 
 
         if self.move_base_client.get_state() == actionlib.GoalStatus.SUCCEEDED:
-            result = GoToLocationResult(passed=True)
-            self.goto_server.set_succeeded(result)
+            rospy.loginfo("SUCCEEDED: Go to Location")
+            self.goto_server.set_succeeded(GoToLocationResult())
         else:
-            result = GoToLocationResult(passed=False)
-            self.goto_server.set_aborted(result)
+            rospy.loginfo("FAILED: Go to Location")
+            self.goto_server.set_aborted(GoToLocationResult())
 
     def lookAt(self, goal):
         rospy.sleep(4)
-        result = LookAtResult(passed=True)
-        self.lookat_server.set_succeeded(result)
+        rospy.loginfo("SUCCEEDED: looking at person")
+        self.lookat_server.set_succeeded(LookAtResult())
 
 
 if __name__ == "__main__":

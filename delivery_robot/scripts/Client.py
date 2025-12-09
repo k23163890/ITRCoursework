@@ -31,8 +31,8 @@ def go_to_living_room(client):
 def main():
     rospy.init_node('Client')
 
-    client = actionlib.SimpleActionClient('goto_location', GoToLocationAction)
-    look_client = actionlib.SimpleActionClient('look_at', LookAtAction)
+    client = actionlib.SimpleActionClient('locationServer', GoToLocationAction)
+    look_client = actionlib.SimpleActionClient('lookAtServer', LookAtAction)
 
     client.wait_for_server()
     look_client.wait_for_server()

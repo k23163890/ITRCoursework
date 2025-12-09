@@ -39,7 +39,7 @@ def closed_loop(pub, x, y, th):
 def open_loop(pub):
     vel = Twist()
     rate = rospy.Rate(20)
-    steps = [(1.0, 0.0, 40), (0.0, pi/2, 20), (1.0, 0.0, 20), (0.0, pi/2, 20)]
+    steps = [(1.0, 0.0,80), (0.0, -pi/4, 40), (1.0, 0.0, 40), (0.0, -pi/4, 40)]
     pub.publish(Twist())
     rate.sleep()
     while not rospy.is_shutdown():
@@ -60,8 +60,8 @@ if __name__ == "__main__":
     pub = rospy.Publisher("/turtle1/cmd_vel", Twist, queue_size=10)
     rospy.Subscriber("/turtle1/pose", Pose, posenew)
     rospy.sleep(1)
-    x = 4.5
-    y = 5
+    x = 3.5
+    y = 6
     th = 0.0
     closed_loop(pub, x,y, th)
     open_loop(pub)

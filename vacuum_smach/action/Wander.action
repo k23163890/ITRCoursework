@@ -1,0 +1,8 @@
+# Goal
+float32 duration
+---
+# Result
+string stop_reason
+---
+# Feedback
+string current_status

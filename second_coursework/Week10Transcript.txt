@@ -1,0 +1,198 @@
+Now we will see how to find
+different tools online that will allow us
+to use different capabilities for
+the robots and in this case we'll see
+how to use ROS Vosk,
+which is a tool to perform speech recognition indoors.
+And we'll see also how to install
+other tools to play audio in our similarity container,
+so let's go to it.
+I have already open,
+this is the GitHub page of
+the ROS Vosk tool and it's
+public code and it's often the case
+that this code is usually public and it's easy to
+install and usually you will find these
+either in the ROS Noetic or Google or so on.
+If you start to look into, for instance,
+speech recognition in rows,
+you will find some tools that will help
+you to do that and so on.
+And usually we'll see
+the instructions on how to install things here,
+but I already installed
+all the dependencies and everything in this week,
+single containers, you will not need to do that,
+but just clone the GitHub repository.
+And for those who may not know,
+the GitHub is a version control system that allows
+to keep different versions
+of the work and different comments
+and people use it to publish their work as
+open sourcefware and we'll see
+now how to download
+this code and install it in our computer,
+so we will go to this code tab, clone, and copy this,
+which will be the clone link and
+then we'll go to our terminal and let me
+open singularity and source
+our workspace because I don't have the alias set up.
+Now I will go there
+the source folder where I have
+some packages we will be developing
+today and some more packages and now I will get
+clone paste the link on White ROS Vosk.
+So this will be the name of the package,
+ROS packages usually are
+written with underscores this hasn't there,
+it's easier to naming like
+this now this will download all the code,
+our computer and as this is happening,
+we will be using, downloading an code which is this one,
+the HMI Robin, which is developed by
+some group at JKU University,
+which is the Johannes Caber University
+by the group of Robotics,
+so we'll be using this also as a way to perform speech.
+So again, we'll copy this link and now
+get clones always with an underscore
+that's fine and now what this has done is to create
+this ROS Vosk and
+the HMI packages in
+our workspace and what we need to do is to compile them.
+Now we'll go back to the source
+of the workspace and run make
+it creates all the packages
+and messages that it needs in order to work,
+so now let's wait until all the packages compiled.
+And now we have
+compiled all the packages in the workspace,
+which means that now we can run all these tools,
+now let's start with see how we can recognise speech.
+So we will start by launching the ROS Vosk launch,
+which is inside the package ROS Vosk
+and now this says that this is way to listen.
+And as you can see,
+this is already recognising what I am
+saying and obviously,
+my English is not perfect,
+but this is quite recognising what I'm saying,
+this printing what it's being recognised on the screen,
+but let's see how we can get this from the node,
+so let's see what information is the no providing.
+So let's start by
+executing another singularity container here,
+sourcing the [inaudible] that's fun and now let's see,
+by using node here,
+what information is this node providing,
+so let's I'm tapping
+and this is the different nodes that are there,
+so we want to see what's inside this Vosk engine.
+So ROS node info will tell us
+all the information at the node basically,
+which topics are being published,
+which topics is this subscribing to,
+and which services does the not
+provide, among other information.
+So these are the services that it provides,
+those are just standard internal services,
+so this is not something that we usually will call.
+These are the subscription this is being subscribed
+to this topic called TTS slice status,
+so this is some information that this node is getting,
+and the information that this node is publishing,
+so this is what we're interested in,
+and also standard topic in rows,
+we'll mainly be interested in all these topics.
+There is a topic which is called Final
+result that will be publishing a string,
+another topic which is called partial result that will be
+publishing a different string and then the Vosk result,
+which will be publishing this information,
+so let's subscribe to all these topics
+and see what's being published in them.
+So we'll start by doing
+a rostopic echo to see what is inside the topic,
+so let's see what's inside
+this final result and now this will keep
+telling us all the information that's being said by
+me and when I stop speaking,
+this will be the end of
+the recognition and then this will be
+sent on the topic as the final recognition.
+Now let's see what happens when
+checking this partial result,
+so let's now topic echo
+this partial result and here it keeps publishing
+things as long as it goes on
+recognising them and finally,
+let's see what's inside this Vosk preserve route.
+This is the information that it will be saying,
+so it will keep putting some information telling you
+if it's recognised when I stop speaking,
+it says it's recognised and then it publishes
+the final speech and
+this also provides some other information.
+So basically, as we can see,
+the topic will be interested
+is in this final recognition,
+which is telling us the final part of our speech.
+Now let's try something different and
+let's see if we can make our computer speak,
+so let's now check which topics are
+available and we see that there's
+this TTS phrase and TTS status
+which I guess will be published by the TTS engine node.
+So this TTS engine node
+publishes some status and subscribe to one phrase,
+so TTS stands for text to speech,
+so this means that if we publish this phrase,
+we will get some information and this
+says that it's from an unknown type,
+which is strange, let's see what happens here.
+If we check topic type,
+it will tell us that it has a type message of string,
+so now let's see what happens when we publish
+some information to this topic,
+so we will be publishing to this, if I type,
+now we will complete the message type and
+some data and let's say that this is a test.
+This one of the way
+that we've seen using speech and text to speech
+now let's see the other node we've seen which is
+called Speech database and
+this one probably will have the same error,
+but we will try and this node what does connect
+to Google Cloud and use
+the Google Translate text to speech to get the speech,
+which produces a bit less robotic speech output.
+And what it also does is that it
+stores the text that it has already used and
+retrieved from the Internet in order
+to not make them again,
+so instead of getting them from the Cloud again,
+it goes in the local database.
+So let's see if we can run this from here,
+now let's check which topics are there
+and We can see that there is
+some play topic, some speech topic.
+Let's go to rosnode Info
+and see which nodes are there now and
+there is basically one node
+which is called HMI Speech Database,
+that subscribe to one speech topic, unknown type again.
+And let's see what's inside
+this topic speech and this topic has a string message,
+so let's try to publish to this speech topic and again,
+I tap and it will auto-complete,
+now I will say again,
+this is another test.
+Let's see if we can hear this.
+>> This is another test
+[NOISE] my
+robot can speak.
+>> So we have seen now two ways of using
+speech to understand speech
+and also to make the robot speak,
+now let's see how we can make
+our robot go to places and tell us what it is doing.

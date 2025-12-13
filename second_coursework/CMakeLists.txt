@@ -173,9 +173,8 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/find_object_service.py
   scripts/check_rules_action_server.py
-  scripts/check_rules_action.py
-  scripts/movement_utils.py
-  scripts/yolo_client.py
+  scripts/find_object_action_server.py
+  scripts/yolo_detector.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

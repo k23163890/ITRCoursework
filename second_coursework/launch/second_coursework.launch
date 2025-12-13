@@ -11,7 +11,7 @@
     
 
     <include file="$(find speech_database)/launch/speech.launch" />
-    <include file="$(find ros_vosk)/launch/ros_vosk.launch" />
+   <!-- <include file="$(find ros_vosk)/launch/ros_vosk.launch" /> -->
 
     <include file="$(find second_coursework)/launch/student_nodes.launch" />
 </launch>

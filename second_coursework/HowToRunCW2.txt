@@ -2,7 +2,7 @@ How to run Cw2
 
 
 T1:
-roslaunch second_coursework second_coursework.launch     video_folder:=/home/k23163890/catkin_ws/src/Supplementary_files_20251205/cs_cw_2526_videos 
+USE THIS: roslaunch second_coursework second_coursework.launch     video_folder:=/home/k23163890/catkin_ws/src/Supplementary_files_20251205/cs_cw_2526_videos 
 
 
 
@@ -13,7 +13,7 @@ rosrun second_coursework itr_cw_CS_2546 --video_folder /home/k23163890/catkin_ws
 
 T3:
 
-roslaunch second_coursework student_nodes.launch
+USE THIS: roslaunch second_coursework student_nodes.launch
 
 
 T4:
@@ -32,6 +32,8 @@ rosrun second_coursework check_rules_action.py
 
 T7:
 rostopic echo /check_rules/feedback
-rostopic pub /check_rules/goal second_coursework/CheckRulesActionGoal "{}" --once
+USE THIS: rostopic pub /check_rules/goal second_coursework/CheckRulesActionGoal "{}" --once
+USE THIS: rostopic pub /find_object_action/goal second_coursework/FindObjectActionGoal "goal: {object_name: 'laptop'}" --once
+
 
 (Check all of these an issue with check_action.py has something to do with this)

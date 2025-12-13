@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import rospy
+import smach
+from second_coursework.msg import CheckRulesFeedback
+# Assuming YOLOFrame service is available as per coursework
+from second_coursework.srv import YOLOFrame 
+
+class CheckRoomState(smach.State):
+    """
+    Checks a room for rule violations.
+    rule_type: 1 (Kitchen/Person) or 2 (Bedroom/Food)
+    """
+    def __init__(self, action_server, rule_type):
+        smach.State.__init__(self, outcomes=['checked', 'violation', 'preempted'])
+        self.action_server = action_server
+        self.rule_type = rule_type
+        self.food_items = ['pizza', 'sandwich', 'banana', 'broccolli']
+
+    def execute(self, userdata):
+        rospy.loginfo(f"[CheckRules] checking Rule {self.rule_type}...")
+
+        if self.preempt_requested():
+            self.service_preempt()
+            return 'preempted'
+
+        detections = []
+        try:
+            rospy.wait_for_service('/detect_frame', timeout=2.0)
+            detect_service = rospy.ServiceProxy('/detect_frame', YOLOFrame)
+            response = detect_service()
+            detections = [d.name.lower() for d in response.detections]
+            rospy.loginfo(f"[CheckRules] YOLO Detected: {detections}")
+        except (rospy.ServiceException, rospy.ROSException) as e:
+            rospy.logwarn(f"[CheckRules] Detection failed (Service not ready?): {e}")
+            # We proceed as 'checked' to keep the patrol loop alive
+            return 'checked'
+
+        violation_found = False
+        
+        # Rule 1: No people in Kitchen (Room F)
+        if self.rule_type == 1:
+            if 'person' in detections:
+                violation_found = True
+                rospy.logwarn("RULE 1 VIOLATION: Person detected in Kitchen!")
+
+        # Rule 2: No food in Bedroom (Room C)
+        elif self.rule_type == 2:
+            for item in detections:
+                if item in self.food_items:
+                    violation_found = True
+                    rospy.logwarn(f"RULE 2 VIOLATION: {item} detected in Bedroom!")
+                    break
+
+        if violation_found:
+            feedback = CheckRulesFeedback()
+            feedback.broken_rule = self.rule_type
+            self.action_server.publish_feedback(feedback)
+            return 'violation'
+        
+        return 'checked'

@@ -4,18 +4,17 @@ import smach
 from std_msgs.msg import String
 
 class AnnounceState(smach.State):
-    """Speaks the result using the Speech Database (Google TTS)."""
+    """Speaks the result using the TTS Engine (eSpeak/Robotic voice)."""
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded'], input_keys=['object_to_find', 'found_room'])
         
-        # Topic '/speech' is used by the hmi_speech_database node (Better quality)
-        # Topic '/tts/phrase' is used by the tts_engine node (Robotic voice)
-        self.tts_pub = rospy.Publisher('/speech', String, queue_size=1)
+        # CHANGED: Now publishing to '/tts/phrase' instead of '/speech'
+        self.tts_pub = rospy.Publisher('/tts/phrase', String, queue_size=1)
 
     def execute(self, userdata):
         # Format the sentence as required: Room + Object Name
         text = f"I found the {userdata.object_to_find} in room {userdata.found_room}"
-        rospy.loginfo(f"[FindObject] Announcing: {text}")
+        rospy.loginfo(f"[FindObject] Announcing via /tts/phrase: {text}")
         
         msg = String()
         msg.data = text
@@ -27,3 +26,5 @@ class AnnounceState(smach.State):
             rospy.sleep(1.0) # Wait 1 second between repeats
             
         return 'succeeded'
+    
+    #Make sure to test speech recog again - used /speech previously and need to use tts_engine

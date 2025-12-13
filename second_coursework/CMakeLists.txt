@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   std_msgs
   actionlib_msgs
-  YOLOObjectDetection
   sensor_msgs
 )
 
@@ -76,7 +75,6 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   actionlib_msgs
-  YOLOObjectDetection
   sensor_msgs
 )
 

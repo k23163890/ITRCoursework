@@ -8,8 +8,6 @@
     </include>
 
     <node pkg="second_coursework" type="itr_cw_CS_2546" name="itr_cw_CS_2546" output="screen" args="--video_folder $(arg video_folder) --seed $(arg seed)" required="true"/>
-    
-
     <include file="$(find speech_database)/launch/speech.launch" />
    <!-- <include file="$(find ros_vosk)/launch/ros_vosk.launch" /> -->
 

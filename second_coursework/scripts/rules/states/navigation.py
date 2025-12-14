@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 import rospy
 import smach
-import actionlib
+from smach_ros import SimpleActionState
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Quaternion
 from tf.transformations import quaternion_from_euler
 
-# Embedded coordinates from the original movement_utils
 ROOM_COORDS = {
     "A": (1.8, 8.6, 0.0),
     "B": (5.5, 8.2, 0.0),
     "C": (10.3, 8.1, 0.0),
     "D": (2.0, 3.6, 0.0),
     "E": (6.6, 4.8, 0.0),
-    "F": (10.0, 3.8, 0.0),
+    "F": (9.0, 3.0, 0.0),
 }
 
 class WaitState(smach.State):
@@ -26,83 +25,60 @@ class WaitState(smach.State):
         rospy.loginfo(f"[CheckRules] Waiting {self.duration} seconds for localization...")
         start_time = rospy.Time.now()
         
-        while (rospy.Time.now() - start_time).to_sec() < self.duration:
-            if self.preempt_requested():
-                self.service_preempt()
-                return 'preempted'
-            rospy.sleep(0.1)
+        try:
+            while (rospy.Time.now() - start_time).to_sec() < self.duration:
+                if self.preempt_requested() or rospy.is_shutdown():
+                    self.service_preempt()
+                    return 'preempted'
+                rospy.sleep(0.1)
+        except rospy.ROSInterruptException:
+            return 'preempted'
             
         return 'succeeded'
 
-class GoToRoomState(smach.State):
+class GoToRoomState(SimpleActionState):
     """
-    Navigates to a room. 
-    If 'room_letter' is provided in __init__, it uses that.
-    Otherwise, it looks for 'target_room' in userdata.
+    Navigates to a room using SimpleActionState.
     """
-    def __init__(self, room_letter=''):
-        smach.State.__init__(self, 
-                             outcomes=['arrived', 'failed', 'preempted'],
-                             input_keys=['target_room'])
-        self.fixed_room = room_letter
-        self.client = None # Lazy initialization
-
-    def _init_client(self):
-        if self.client is None:
-            rospy.loginfo("[GoToRoomState] Connecting to move_base...")
-            self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-            if not self.client.wait_for_server(timeout=rospy.Duration(5.0)):
-                rospy.logwarn("[GoToRoomState] move_base server not available!")
-                return False
-        return True
-
-    def execute(self, userdata):
-        # 1. Determine target room
-        target = self.fixed_room if self.fixed_room else userdata.target_room
+    def __init__(self, room_letter):
+        self.room_letter = room_letter
         
-        rospy.loginfo(f"[Navigation] Preparing to go to Room {target}...")
+        # We use a goal_cb to generate the goal
+        # We use a result_cb to handle shutdown signals safely
+        super(GoToRoomState, self).__init__(
+            'move_base', 
+            MoveBaseAction, 
+            goal_cb=self._make_goal,
+            result_cb=self._result_callback
+        )
 
-        # 2. Check Preemption
-        if self.preempt_requested():
-            self.service_preempt()
-            return 'preempted'
+    def _make_goal(self, userdata, goal):
+        """Internal callback to create the goal with current time."""
+        if self.room_letter not in ROOM_COORDS:
+            rospy.logerr(f"[Navigation] Unknown room: {self.room_letter}")
+            return None
 
-        # 3. Validate Room
-        if target not in ROOM_COORDS:
-            rospy.logerr(f"[Navigation] Unknown room: {target}")
-            return 'failed'
-
-        # 4. Initialize Client
-        if not self._init_client():
-            return 'failed'
-
-        # 5. Create Goal
-        x, y, theta = ROOM_COORDS[target]
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "map"
-        goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.pose.position.x = x
-        goal.target_pose.pose.position.y = y
+        x, y, theta = ROOM_COORDS[self.room_letter]
+        
+        target = MoveBaseGoal()
+        target.target_pose.header.frame_id = "map"
+        target.target_pose.header.stamp = rospy.Time.now()
+        target.target_pose.pose.position.x = x
+        target.target_pose.pose.position.y = y
+        
         q = quaternion_from_euler(0, 0, theta)
-        goal.target_pose.pose.orientation = Quaternion(*q)
+        target.target_pose.pose.orientation = Quaternion(*q)
+        
+        rospy.loginfo(f"[Navigation] Going to Room {self.room_letter} ({x}, {y})")
+        return target
 
-        # 6. Send Goal
-        rospy.loginfo(f"[Navigation] Sending goal: Room {target} at ({x}, {y})")
-        self.client.send_goal(goal)
-
-        # 7. Wait for result with preemption handling
-        while not self.client.wait_for_result(timeout=rospy.Duration(0.5)):
-            if self.preempt_requested():
-                self.client.cancel_goal()
-                self.service_preempt()
-                return 'preempted'
-            if rospy.is_shutdown():
-                return 'failed'
-
-        # 8. Check Outcome
-        if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
-            rospy.loginfo(f"[Navigation] Arrived at Room {target}")
-            return 'arrived'
-        else:
-            rospy.logwarn(f"[Navigation] Failed to reach Room {target}")
-            return 'failed'
+    def _result_callback(self, userdata, status, result):
+        """
+        Called when the action finishes. 
+        If ROS is shutting down, we force a 'preempted' outcome 
+        to break any retry loops in the State Machine.
+        """
+        if rospy.is_shutdown():
+            return 'preempted'
+        # Otherwise, let SimpleActionState decide (succeeded/aborted)
+        return None

@@ -19,28 +19,30 @@ class FindObjectServiceNode:
         self.service = rospy.Service("/find_object", FindObject, self.handle_find_object)
 
     def handle_find_object(self, req):
-        """
-        This function runs when you type: rosservice call /find_object "dog"
-        """
         target = req.object_name
-        rospy.loginfo(f"[FindObjectService] Received Service Request: Find '{target}'")
+        rospy.loginfo(f"[FindObjectService] Received Request: Find '{target}'")
 
-        # 3. Create the Action Goal
+        # CHECK STATE: Is the robot already busy?
+        # standard active states: ACTIVE, PENDING, RECALLING, PREEMPTING
+        state = self.action_client.get_state()
+        
+        # If state is ACTIVE (1) or PENDING (0), we are busy.
+        if state in [0, 1]:
+            rospy.logwarn(f"[FindObjectService] REJECTED. Already searching (State: {state}).")
+            return FindObjectResponse(request_accepted=False)
+
+        # If we are idle (DONE, SUCCEEDED, ABORTED, etc.), accept the goal
         goal = FindObjectGoal()
         goal.object_name = target
-
-        # 4. Send the goal to the Action Server
-        # This triggers the robot to stop patrolling and start searching
         self.action_client.send_goal(goal)
-
-        rospy.loginfo("[FindObjectService] Forwarded request to Action Server.")
-
-        # 5. Return success immediately (Non-blocking)
+        
+        rospy.loginfo("[FindObjectService] ACCEPTED. Starting search.")
         return FindObjectResponse(request_accepted=True)
-
 if __name__ == "__main__":
     try:
         node = FindObjectServiceNode()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
+
+#I have changed handle_find_object - if it doesnt work check against old code (gemini)

@@ -2,6 +2,7 @@
 import rospy
 import actionlib
 import smach
+import smach_ros
 import sys
 import os
 
@@ -9,11 +10,10 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.append(script_dir)
 
-# Import CheckRulesAction so we can cancel it
 from second_coursework.msg import FindObjectAction, FindObjectResult, CheckRulesAction
-from findObject.states.search import SelectNextRoomState, VerifyObjectState
+from findObject.states.search import VerifyObjectState
 from findObject.states.announce import AnnounceState
-from rules.states.navigation import GoToRoomState 
+from rules.states.navigation import GoToRoomState
 
 class FindObjectServer:
     def __init__(self):
@@ -23,31 +23,21 @@ class FindObjectServer:
             execute_cb=self.execute_cb, 
             auto_start=False
         )
-        
-        # Client to control the patrolling behavior
         self.check_rules_client = actionlib.SimpleActionClient('/check_rules', CheckRulesAction)
-        
         self.server.start()
         rospy.loginfo("[FindObject] Action Server Started")
 
     def execute_cb(self, goal):
-        rospy.loginfo("[FindObject] Goal Received. Stopping any active patrols...")
-        
-        # 1. Stop the Rule Checker (Patrol)
-        # This prevents the "fighting" for move_base control
+        rospy.loginfo("[FindObject] Goal Received. Stopping active patrols...")
         self.check_rules_client.cancel_all_goals()
-        
-        # 2. Wait briefly to ensure the robot stops and the other node handles the cancel
         rospy.sleep(2.0)
 
         target_object = goal.object_name
-        rospy.loginfo(f"[FindObject] Searching for: {target_object}")
+        rospy.loginfo(f"[FindObject] Starting Sequential Search for: {target_object}")
 
         sm = smach.StateMachine(outcomes=['succeeded', 'preempted', 'aborted'])
-        
         sm.userdata.object_to_find = target_object
         sm.userdata.found_room = "" 
-        sm.userdata.target_room = ""
 
         def check_preempt():
             if self.server.is_preempt_requested():
@@ -55,39 +45,55 @@ class FindObjectServer:
         self.server.register_preempt_callback(check_preempt)
 
         with sm:
-            # 1. Select Next Room (Iterates A->F)
-            smach.StateMachine.add('SELECT_ROOM', SelectNextRoomState(),
-                                   transitions={'next_room': 'GO_TO_ROOM', 
-                                                'all_visited': 'aborted', 
-                                                'preempted': 'preempted'})
+            # === SEQUENCE: GO -> SEARCH -> GO -> SEARCH ===
+            
+            # ROOM A
+            smach.StateMachine.add('GO_A', GoToRoomState('A'),
+                                   transitions={'succeeded': 'SEARCH_A', 'aborted': 'GO_B', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_A', VerifyObjectState('A'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_B', 'preempted': 'preempted'})
 
-            # 2. Navigate
-            smach.StateMachine.add('GO_TO_ROOM', GoToRoomState(), 
-                                   transitions={'arrived': 'LOOK_FOR_OBJECT',
-                                                'failed': 'SELECT_ROOM', 
-                                                'preempted': 'preempted'})
+            # ROOM B
+            smach.StateMachine.add('GO_B', GoToRoomState('B'),
+                                   transitions={'succeeded': 'SEARCH_B', 'aborted': 'GO_C', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_B', VerifyObjectState('B'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_C', 'preempted': 'preempted'})
 
-            # 3. Look for Object
-            smach.StateMachine.add('LOOK_FOR_OBJECT', VerifyObjectState(),
-                                   transitions={'found': 'GO_TO_LIVING_ROOM', 
-                                                'not_found': 'SELECT_ROOM',
-                                                'preempted': 'preempted'})
+            # ROOM C
+            smach.StateMachine.add('GO_C', GoToRoomState('C'),
+                                   transitions={'succeeded': 'SEARCH_C', 'aborted': 'GO_D', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_C', VerifyObjectState('C'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_D', 'preempted': 'preempted'})
 
-            # 4. Success? Go to Living Room (E)
+            # ROOM D
+            smach.StateMachine.add('GO_D', GoToRoomState('D'),
+                                   transitions={'succeeded': 'SEARCH_D', 'aborted': 'GO_F', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_D', VerifyObjectState('D'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_F', 'preempted': 'preempted'})
+
+            # ROOM F (Kitchen)
+            smach.StateMachine.add('GO_F', GoToRoomState('F'),
+                                   transitions={'succeeded': 'SEARCH_F', 'aborted': 'aborted', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_F', VerifyObjectState('F'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'aborted', 'preempted': 'preempted'})
+
+            # ROOM E (Lobby - Final Destination)
             smach.StateMachine.add('GO_TO_LIVING_ROOM', GoToRoomState('E'),
-                                   transitions={'arrived': 'ANNOUNCE', 
-                                                'failed': 'ANNOUNCE', 
-                                                'preempted': 'preempted'})
+                                   transitions={'succeeded': 'ANNOUNCE', 'aborted': 'ANNOUNCE', 'preempted': 'preempted'})
 
-            # 5. Announce Result
+            # ANNOUNCE
             smach.StateMachine.add('ANNOUNCE', AnnounceState(),
                                    transitions={'succeeded': 'succeeded'})
 
+        sis = smach_ros.IntrospectionServer('find_object_server', sm, '/FIND_OBJECT_SM')
+        sis.start()
         outcome = sm.execute()
+        sis.stop()
         
         res = FindObjectResult()
         if outcome == 'succeeded':
             res.success = True
+            res.object_found = target_object
             self.server.set_succeeded(res)
         elif outcome == 'preempted':
             self.server.set_preempted(res)

@@ -1,5 +1,0 @@
-classes = 80
-train = /opt/darknet/data/coco_train.txt
-valid = /opt/darknet/data/coco_val.txt
-names = /opt/darknet/data/coco.names
-backup = /opt/darknet/backup/

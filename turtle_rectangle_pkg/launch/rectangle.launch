@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="turtle_rectangle_pkg"
-        type="Task1new.py"
-        name="rectangle_node"
-        output="screen"/>
-</launch>
-

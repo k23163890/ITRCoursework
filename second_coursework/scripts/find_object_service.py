@@ -8,30 +8,23 @@ class FindObjectServiceNode:
     def __init__(self):
         rospy.init_node("find_object_service_node")
 
-        # 1. Create a Client to talk to the Action Server (The "Muscle")
         self.action_client = actionlib.SimpleActionClient('/find_object_action', FindObjectAction)
         
         rospy.loginfo("[FindObjectService] Waiting for Action Server...")
         self.action_client.wait_for_server()
         rospy.loginfo("[FindObjectService] Action Server Connected! Ready for requests.")
 
-        # 2. Advertise the Service (The "Interface")
         self.service = rospy.Service("/find_object", FindObject, self.handle_find_object)
 
     def handle_find_object(self, req):
         target = req.object_name
         rospy.loginfo(f"[FindObjectService] Received Request: Find '{target}'")
-
-        # CHECK STATE: Is the robot already busy?
-        # standard active states: ACTIVE, PENDING, RECALLING, PREEMPTING
         state = self.action_client.get_state()
         
-        # If state is ACTIVE (1) or PENDING (0), we are busy.
         if state in [0, 1]:
             rospy.logwarn(f"[FindObjectService] REJECTED. Already searching (State: {state}).")
             return FindObjectResponse(request_accepted=False)
 
-        # If we are idle (DONE, SUCCEEDED, ABORTED, etc.), accept the goal
         goal = FindObjectGoal()
         goal.object_name = target
         self.action_client.send_goal(goal)

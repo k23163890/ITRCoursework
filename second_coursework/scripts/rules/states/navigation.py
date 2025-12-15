@@ -43,8 +43,6 @@ class GoToRoomState(SimpleActionState):
     def __init__(self, room_letter):
         self.room_letter = room_letter
         
-        # We use a goal_cb to generate the goal
-        # We use a result_cb to handle shutdown signals safely
         super(GoToRoomState, self).__init__(
             'move_base', 
             MoveBaseAction, 
@@ -80,5 +78,4 @@ class GoToRoomState(SimpleActionState):
         """
         if rospy.is_shutdown():
             return 'preempted'
-        # Otherwise, let SimpleActionState decide (succeeded/aborted)
         return None

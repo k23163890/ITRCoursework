@@ -67,17 +67,32 @@ class FindObjectServer:
 
             # ROOM D
             smach.StateMachine.add('GO_D', GoToRoomState('D'),
-                                   transitions={'succeeded': 'SEARCH_D', 'aborted': 'GO_F', 'preempted': 'preempted'})
+                                   transitions={'succeeded': 'SEARCH_D', 'aborted': 'GO_E', 'preempted': 'preempted'})
             smach.StateMachine.add('SEARCH_D', VerifyObjectState('D'),
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_E', 'preempted': 'preempted'})
+
+            # ROOM E (Search Phase)
+            smach.StateMachine.add('GO_E', GoToRoomState('E'),
+                                   transitions={'succeeded': 'SEARCH_E', 'aborted': 'GO_F', 'preempted': 'preempted'})
+            smach.StateMachine.add('SEARCH_E', VerifyObjectState('E'),
                                    transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_F', 'preempted': 'preempted'})
 
             # ROOM F (Kitchen)
+            # If navigation to F fails, we try the retry loop
             smach.StateMachine.add('GO_F', GoToRoomState('F'),
-                                   transitions={'succeeded': 'SEARCH_F', 'aborted': 'aborted', 'preempted': 'preempted'})
+                                   transitions={'succeeded': 'SEARCH_F', 'aborted': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
+            
+            # If object NOT found in F, we go to Lobby (Retry State)
             smach.StateMachine.add('SEARCH_F', VerifyObjectState('F'),
-                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'aborted', 'preempted': 'preempted'})
+                                   transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
 
-            # ROOM E (Lobby - Final Destination)
+            # === RETRY LOOP ===
+            # Go to Lobby (Room E) because search failed, then restart at GO_A
+            smach.StateMachine.add('GO_LOBBY_RETRY', GoToRoomState('E'),
+                                   transitions={'succeeded': 'GO_A', 'aborted': 'GO_A', 'preempted': 'preempted'})
+
+            # === SUCCESS DESTINATION ===
+            # Go to Lobby (Room E) because object WAS found, then Announce
             smach.StateMachine.add('GO_TO_LIVING_ROOM', GoToRoomState('E'),
                                    transitions={'succeeded': 'ANNOUNCE', 'aborted': 'ANNOUNCE', 'preempted': 'preempted'})
 

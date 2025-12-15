@@ -30,16 +30,17 @@ class CheckRulesServer:
         
         sm = smach.StateMachine(outcomes=['succeeded', 'preempted', 'aborted'])
 
-        # 1. Handle Action Client Preemption (e.g., when FindObject starts)
         def check_preempt():
             if self.server.is_preempt_requested():
                 sm.request_preempt()
         self.server.register_preempt_callback(check_preempt)
 
-        # 2. NEW: Handle ROS Shutdown (Ctrl+C) Instantly
+
+
+
         def shutdown_hook():
             rospy.logwarn("[CheckRules] Ctrl+C detected! Preempting State Machine...")
-            sm.request_preempt() # This forces the current state to return 'preempted'
+            sm.request_preempt()
         rospy.on_shutdown(shutdown_hook)
 
         with sm:
@@ -53,7 +54,7 @@ class CheckRulesServer:
                                                 'aborted': 'RETRY_WAIT_F', 
                                                 'preempted': 'preempted'})
             
-            # Retry Wait State
+            # Retry Wait State (Kitchen)
             smach.StateMachine.add('RETRY_WAIT_F', WaitState(2.0),
                                    transitions={'succeeded': 'GO_KITCHEN', 'preempted': 'preempted'})
 
@@ -69,7 +70,7 @@ class CheckRulesServer:
                                                 'aborted': 'RETRY_WAIT_C', 
                                                 'preempted': 'preempted'})
 
-            # Retry Wait State
+            # Retry Wait State (Bedroom)
             smach.StateMachine.add('RETRY_WAIT_C', WaitState(2.0),
                                    transitions={'succeeded': 'GO_BEDROOM', 'preempted': 'preempted'})
 
@@ -85,12 +86,16 @@ class CheckRulesServer:
         sis.stop()
 
         result = CheckRulesResult()
-        if outcome == 'preempted':
-            self.server.set_preempted(result)
-        elif outcome == 'succeeded':
-            self.server.set_succeeded(result)
-        else:
-            self.server.set_aborted(result)
+        
+        try:
+            if outcome == 'preempted':
+                self.server.set_preempted(result)
+            elif outcome == 'succeeded':
+                self.server.set_succeeded(result)
+            else:
+                self.server.set_aborted(result)
+        except rospy.ROSException:
+            pass
 
 if __name__ == '__main__':
     rospy.init_node('check_rules_action_server')

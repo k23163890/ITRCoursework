@@ -6,10 +6,6 @@ from second_coursework.msg import CheckRulesFeedback
 from second_coursework.srv import YOLOFrame 
 
 class CheckRoomState(smach.State):
-    """
-    Checks a room for rule violations.
-    Includes a 360-degree spin to simulate scanning.
-    """
     def __init__(self, action_server, rule_type):
         smach.State.__init__(self, outcomes=['checked', 'violation', 'preempted'])
         self.action_server = action_server
@@ -20,7 +16,6 @@ class CheckRoomState(smach.State):
     def execute(self, userdata):
         rospy.loginfo(f"[CheckRules] Arrived. Scanning room (Rule {self.rule_type})...")
 
-        # --- SPINNING BEHAVIOR ---
         spin_cmd = Twist()
         spin_cmd.angular.z = 1.57
         end_time = rospy.Time.now() + rospy.Duration(4.0)
@@ -33,7 +28,6 @@ class CheckRoomState(smach.State):
                 self.cmd_vel_pub.publish(spin_cmd)
                 rospy.sleep(0.1)
             
-            # Stop spinning
             self.cmd_vel_pub.publish(Twist())
             rospy.sleep(0.5)
 
@@ -43,7 +37,6 @@ class CheckRoomState(smach.State):
 
             detections = []
             
-            # --- DETECTION ---
             rospy.wait_for_service('/detect_frame', timeout=2.0)
             detect_service = rospy.ServiceProxy('/detect_frame', YOLOFrame)
             response = detect_service()

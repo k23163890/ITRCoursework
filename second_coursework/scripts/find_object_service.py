@@ -37,5 +37,3 @@ if __name__ == "__main__":
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
-
-#I have changed handle_find_object - if it doesnt work check against old code (gemini)

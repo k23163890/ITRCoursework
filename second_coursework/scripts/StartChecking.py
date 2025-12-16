@@ -6,13 +6,10 @@ from second_coursework.msg import CheckRulesAction, CheckRulesGoal
 def trigger_check_rules():
     rospy.init_node("check_rules_client_node")
     
-    # Create the client
     client = actionlib.SimpleActionClient('/check_rules', CheckRulesAction)
     
     rospy.loginfo("Waiting for /check_rules action server...")
-    # Wait for the server to start (timeout 5s)
     if client.wait_for_server(timeout=rospy.Duration(20.0)):
-        # Create and send the goal
         goal = CheckRulesGoal()
         client.send_goal(goal)
         rospy.loginfo("CheckRules Action automatically triggered!")

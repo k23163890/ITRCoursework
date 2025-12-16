@@ -20,7 +20,6 @@ class YoloCWNode:
         
         rospy.loginfo("[YOLO CW] Initialising YOLOv4 detector")
 
-        # Load YOLO
         self.detector = Detector(
             gpu_id=0,
             config_path="/opt/darknet/cfg/yolov4.cfg",
@@ -42,52 +41,38 @@ class YoloCWNode:
         rospy.loginfo("[YOLO CW] Ready. Detector runs only on Service calls.")
 
     def img_callback(self, msg):
-        """
-        Updates the image variable. 
-        No processing, just assignment.
-        """
         try:
             self.cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="rgb8")
         except Exception as e:
             rospy.logwarn(f"[YOLO CW] cv_bridge error: {e}")
 
     def handle_detect_frame(self, req):
-        """
-        Runs detection only when asked.
-        """
         resp = YOLOFrameResponse()
 
         if self.cv_image is None:
             rospy.logwarn("[YOLO CW] Service called but no image received yet!")
             return resp
 
-        # Get original image dimensions for the math
         cv_height, cv_width = self.cv_image.shape[:2]
 
-        # 1. Resize Image for YOLO Network
         img_net = cv2.resize(
             self.cv_image,
             (self.detector.network_width(), self.detector.network_height())
         )
         
-        # 2. Run Detection
         detections = self.detector.perform_detect(image_path_or_buf=img_net, show_image=False)
 
-        # 3. Publish for Debugging
         names = [det.class_name.lower() for det in detections]
         msg_out = String()
         msg_out.data = ",".join(names)
         self.detected_pub.publish(msg_out)
         rospy.loginfo(f"[YOLO CW] Service Scan Found: {names}")
 
-        # 4. Pack Response with SCALED Bounding Boxes
         for det in detections:
             d = YoloDetection()
             d.name = det.class_name
             d.confidence = det.class_confidence
             
-            # --- BOUNDING BOX MATH ---
-            # Formula: ( Coordinate / Network_Size ) * Real_Image_Size
             d.bbox_x = int((det.left_x / self.detector.network_width()) * cv_width)
             d.bbox_y = int((det.top_y / self.detector.network_height()) * cv_height)
             d.width = int((det.width / self.detector.network_width()) * cv_width)

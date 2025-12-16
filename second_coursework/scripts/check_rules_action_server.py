@@ -45,7 +45,7 @@ class CheckRulesServer:
 
         with sm:
             # 1. Wait (Start)
-            smach.StateMachine.add('WAIT_INIT', WaitState(8.7), 
+            smach.StateMachine.add('WAIT_INIT', WaitState(10), 
                                    transitions={'succeeded': 'GO_KITCHEN', 'preempted': 'preempted'})
 
             # 2. Go to Kitchen

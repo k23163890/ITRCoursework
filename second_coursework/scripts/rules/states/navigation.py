@@ -12,11 +12,10 @@ ROOM_COORDS = {
     "C": (10.3, 8.1, 0.0),
     "D": (2.0, 3.6, 0.0),
     "E": (6.6, 4.8, 0.0),
-    "F": (9.0, 3.0, 0.0),
+    "F": (10.0, 3.8, 0.0),
 }
 
 class WaitState(smach.State):
-    """Waits for a specific duration (e.g., for localization stabilization)."""
     def __init__(self, duration=10.0):
         smach.State.__init__(self, outcomes=['succeeded', 'preempted'])
         self.duration = duration
@@ -37,9 +36,6 @@ class WaitState(smach.State):
         return 'succeeded'
 
 class GoToRoomState(SimpleActionState):
-    """
-    Navigates to a room using SimpleActionState.
-    """
     def __init__(self, room_letter):
         self.room_letter = room_letter
         
@@ -51,7 +47,6 @@ class GoToRoomState(SimpleActionState):
         )
 
     def _make_goal(self, userdata, goal):
-        """Internal callback to create the goal with current time."""
         if self.room_letter not in ROOM_COORDS:
             rospy.logerr(f"[Navigation] Unknown room: {self.room_letter}")
             return None
@@ -71,11 +66,6 @@ class GoToRoomState(SimpleActionState):
         return target
 
     def _result_callback(self, userdata, status, result):
-        """
-        Called when the action finishes. 
-        If ROS is shutting down, we force a 'preempted' outcome 
-        to break any retry loops in the State Machine.
-        """
         if rospy.is_shutdown():
             return 'preempted'
         return None

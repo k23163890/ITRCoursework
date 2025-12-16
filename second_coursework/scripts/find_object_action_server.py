@@ -10,7 +10,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 if script_dir not in sys.path:
     sys.path.append(script_dir)
 
-from second_coursework.msg import FindObjectAction, FindObjectResult, CheckRulesAction
+from second_coursework.msg import FindObjectAction, FindObjectResult, CheckRulesAction, CheckRulesGoal
 from findObject.states.search import VerifyObjectState
 from findObject.states.announce import AnnounceState
 from rules.states.navigation import GoToRoomState
@@ -110,6 +110,15 @@ class FindObjectServer:
             res.success = True
             res.object_found = target_object
             self.server.set_succeeded(res)
+
+
+            rospy.loginfo("[FindObject] Mission Complete. Automatically resuming Rule Checking Patrol...")
+            
+            # Send a new goal to the CheckRules Action Server
+            patrol_goal = CheckRulesGoal()
+            self.check_rules_client.send_goal(patrol_goal)
+
+
         elif outcome == 'preempted':
             self.server.set_preempted(res)
         else:

@@ -10,7 +10,7 @@ class CheckRoomState(smach.State):
         smach.State.__init__(self, outcomes=['checked', 'violation', 'preempted'])
         self.action_server = action_server
         self.rule_type = rule_type
-        self.food_items = ['pizza', 'sandwich', 'banana', 'broccolli']
+        self.food_items = ['pizza', 'sandwich', 'banana', 'broccoli']
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 
     def execute(self, userdata):
@@ -18,7 +18,7 @@ class CheckRoomState(smach.State):
 
         spin_cmd = Twist()
         spin_cmd.angular.z = 1.57
-        end_time = rospy.Time.now() + rospy.Duration(4.0)
+        end_time = rospy.Time.now() + rospy.Duration(15.0)
         
         try:
             while rospy.Time.now() < end_time:
@@ -50,7 +50,6 @@ class CheckRoomState(smach.State):
             rospy.logwarn(f"[CheckRules] Detection failed: {e}")
             return 'checked'
 
-        # --- LOGIC ---
         violation_found = False
         if self.rule_type == 1 and 'person' in detections:
             violation_found = True

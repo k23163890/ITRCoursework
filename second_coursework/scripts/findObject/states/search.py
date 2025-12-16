@@ -16,7 +16,6 @@ class VerifyObjectState(smach.State):
         self.keep_spinning = False
 
     def spin_robot_thread(self):
-        """Background task to keep publishing velocity."""
         spin_cmd = Twist()
         spin_cmd.angular.z = 0.8
         

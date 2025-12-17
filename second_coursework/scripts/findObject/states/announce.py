@@ -9,7 +9,11 @@ class AnnounceState(smach.State):
         self.tts_pub = rospy.Publisher('/tts/phrase', String, queue_size=1)
 
     def execute(self, userdata):
-        room = userdata.found_room if userdata.found_room else "unknown"
+        if userdata.found_room:
+            room = userdata.found_room
+        else:
+            room = "unknown"
+            
         text = f"I found the {userdata.object_to_find} in room {room}"
         rospy.loginfo(text)
         msg = String()

@@ -21,7 +21,7 @@ class WaitState(smach.State):
         self.duration = duration
 
     def execute(self, userdata):
-        rospy.loginfo(f"[CheckRules] Waiting {self.duration} seconds for localization...")
+        rospy.loginfo(f"[CheckRules] Waiting {self.duration} seconds for localisation...")
         start_time = rospy.Time.now()
         
         try:

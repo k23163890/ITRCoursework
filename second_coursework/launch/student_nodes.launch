@@ -10,5 +10,5 @@
         <param name="coco_data" value="$(find second_coursework)/cfg/coco.data"/>
     </node>
     
-    <node pkg="second_coursework" type="StartChecking.py" name="auto_start_check_rules" output="screen"/>
+    <node pkg="second_coursework" type="start_checking.py" name="auto_start_check_rules" output="screen"/>
 </launch>

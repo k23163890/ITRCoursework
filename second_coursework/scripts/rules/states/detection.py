@@ -53,12 +53,12 @@ class CheckRoomState(smach.State):
         violation_found = False
         if self.rule_type == 1 and 'person' in detections:
             violation_found = True
-            rospy.logwarn("RULE 1 VIOLATION: Person detected in Kitchen!")
+            rospy.logwarn("RULE 1 VIOLATION: Person detected in Kitchen")
         elif self.rule_type == 2:
             for item in detections:
                 if item in self.food_items:
                     violation_found = True
-                    rospy.logwarn(f"RULE 2 VIOLATION: {item} detected in Bedroom!")
+                    rospy.logwarn(f"RULE 2 VIOLATION: {item} detected in Bedroom")
                     break
 
         if violation_found:

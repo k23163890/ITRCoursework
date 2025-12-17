@@ -16,14 +16,10 @@ from rules.states.detection import CheckRoomState
 
 class CheckRulesServer:
     def __init__(self):
-        self.server = actionlib.SimpleActionServer(
-            '/check_rules', 
-            CheckRulesAction, 
-            execute_cb=self.execute_cb, 
-            auto_start=False
-        )
+        self.server = actionlib.SimpleActionServer('/check_rules', CheckRulesAction, execute_cb=self.execute_cb, auto_start=False)
         self.server.start()
         rospy.loginfo("[CheckRules] Action Server Started")
+
 
     def execute_cb(self, goal):
         rospy.loginfo("[CheckRules] Goal Received. Starting Patrol.")
@@ -39,7 +35,7 @@ class CheckRulesServer:
 
 
         def shutdown_hook():
-            rospy.logwarn("[CheckRules] Ctrl+C detected! Preempting State Machine...")
+            rospy.logwarn("[CheckRules] Prempting Starting... Ctrl C")
             sm.request_preempt()
         rospy.on_shutdown(shutdown_hook)
 

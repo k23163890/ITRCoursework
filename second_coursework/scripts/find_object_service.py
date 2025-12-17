@@ -9,10 +9,8 @@ class FindObjectServiceNode:
         rospy.init_node("find_object_service_node")
 
         self.action_client = actionlib.SimpleActionClient('/find_object_action', FindObjectAction)
-        
-        rospy.loginfo("[FindObjectService] Waiting for Action Server...")
         self.action_client.wait_for_server()
-        rospy.loginfo("[FindObjectService] Action Server Connected! Ready for requests.")
+        rospy.loginfo("[FindObjectService] Action Server Connected - Ready for requests.")
 
         self.service = rospy.Service("/find_object", FindObject, self.handle_find_object)
 

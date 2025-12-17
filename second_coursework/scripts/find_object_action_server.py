@@ -45,8 +45,6 @@ class FindObjectServer:
         self.server.register_preempt_callback(check_preempt)
 
         with sm:
-            # === SEQUENCE: GO -> SEARCH -> GO -> SEARCH ===
-            
             # ROOM A
             smach.StateMachine.add('GO_A', GoToRoomState('A'),
                                    transitions={'succeeded': 'SEARCH_A', 'aborted': 'GO_B', 'preempted': 'preempted'})
@@ -71,14 +69,13 @@ class FindObjectServer:
             smach.StateMachine.add('SEARCH_D', VerifyObjectState('D'),
                                    transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_E', 'preempted': 'preempted'})
 
-            # ROOM E (Search Phase)
+            # ROOM E - Search only
             smach.StateMachine.add('GO_E', GoToRoomState('E'),
                                    transitions={'succeeded': 'SEARCH_E', 'aborted': 'GO_F', 'preempted': 'preempted'})
             smach.StateMachine.add('SEARCH_E', VerifyObjectState('E'),
                                    transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_F', 'preempted': 'preempted'})
 
             # ROOM F (Kitchen)
-            # If navigation to F fails, we try the retry loop
             smach.StateMachine.add('GO_F', GoToRoomState('F'),
                                    transitions={'succeeded': 'SEARCH_F', 'aborted': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
             
@@ -86,13 +83,11 @@ class FindObjectServer:
             smach.StateMachine.add('SEARCH_F', VerifyObjectState('F'),
                                    transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
 
-            # === RETRY LOOP ===
-            # Go to Lobby (Room E) because search failed, then restart at GO_A
+            # Go to E because search failed, then restart at GO_A
             smach.StateMachine.add('GO_LOBBY_RETRY', GoToRoomState('E'),
                                    transitions={'succeeded': 'GO_A', 'aborted': 'GO_A', 'preempted': 'preempted'})
 
-            # === SUCCESS DESTINATION ===
-            # Go to Lobby (Room E) because object WAS found, then Announce
+            # Go to E -> Announce
             smach.StateMachine.add('GO_TO_LIVING_ROOM', GoToRoomState('E'),
                                    transitions={'succeeded': 'ANNOUNCE', 'aborted': 'ANNOUNCE', 'preempted': 'preempted'})
 
@@ -109,12 +104,11 @@ class FindObjectServer:
         if outcome == 'succeeded':
             res.success = True
             res.object_found = target_object
+            res.room_found = sm.userdata.found_room
             self.server.set_succeeded(res)
 
 
             rospy.loginfo("[FindObject] Mission Complete. Automatically resuming Rule Checking Patrol...")
-            
-            # Send a new goal to the CheckRules Action Server
             patrol_goal = CheckRulesGoal()
             self.check_rules_client.send_goal(patrol_goal)
 

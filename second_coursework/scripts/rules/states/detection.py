@@ -13,13 +13,14 @@ class CheckRoomState(smach.State):
         self.food_items = ['pizza', 'sandwich', 'banana', 'broccoli']
         self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
 
+
+
     def execute(self, userdata):
         rospy.loginfo(f"[CheckRules] Arrived. Scanning room (Rule {self.rule_type})...")
 
         spin_cmd = Twist()
         spin_cmd.angular.z = 1.57
         end_time = rospy.Time.now() + rospy.Duration(15.0)
-        
         try:
             while rospy.Time.now() < end_time:
                 if self.preempt_requested() or rospy.is_shutdown():
@@ -27,7 +28,6 @@ class CheckRoomState(smach.State):
                     return 'preempted'
                 self.cmd_vel_pub.publish(spin_cmd)
                 rospy.sleep(0.1)
-            
             self.cmd_vel_pub.publish(Twist())
             rospy.sleep(0.5)
 
@@ -49,7 +49,6 @@ class CheckRoomState(smach.State):
         except (rospy.ServiceException, rospy.ROSException) as e:
             rospy.logwarn(f"[CheckRules] Detection failed: {e}")
             return 'checked'
-
         violation_found = False
         if self.rule_type == 1 and 'person' in detections:
             violation_found = True
@@ -60,6 +59,11 @@ class CheckRoomState(smach.State):
                     violation_found = True
                     rospy.logwarn(f"RULE 2 VIOLATION: {item} detected in Bedroom")
                     break
+
+
+
+
+                
 
         if violation_found:
             if self.action_server:

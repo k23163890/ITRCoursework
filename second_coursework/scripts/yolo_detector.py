@@ -28,13 +28,9 @@ class YoloCWNode:
             meta_path=rospy.get_param("~coco_data", "/opt/darknet/cfg/coco.data")
         )
 
-        self.image_sub = rospy.Subscriber(
-            "/camera/image", Image, self.img_callback, queue_size=1
-        )
+        self.image_sub = rospy.Subscriber("/camera/image", Image, self.img_callback, queue_size=1)
 
-        self.detected_pub = rospy.Publisher(
-            "/detected_objects", String, queue_size=1
-        )
+        self.detected_pub = rospy.Publisher("/detected_objects", String, queue_size=1)
 
         self.service = rospy.Service('/detect_frame', YOLOFrame, self.handle_detect_frame)
 
@@ -55,10 +51,7 @@ class YoloCWNode:
 
         cv_height, cv_width = self.cv_image.shape[:2]
 
-        img_net = cv2.resize(
-            self.cv_image,
-            (self.detector.network_width(), self.detector.network_height())
-        )
+        img_net = cv2.resize(self.cv_image,(self.detector.network_width(), self.detector.network_height()))
         
         detections = self.detector.perform_detect(image_path_or_buf=img_net, show_image=False)
 

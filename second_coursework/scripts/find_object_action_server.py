@@ -78,12 +78,10 @@ class FindObjectServer:
             # ROOM F (Kitchen)
             smach.StateMachine.add('GO_F', GoToRoomState('F'),
                                    transitions={'succeeded': 'SEARCH_F', 'aborted': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
-            
-            # If object NOT found in F, we go to Lobby (Retry State)
             smach.StateMachine.add('SEARCH_F', VerifyObjectState('F'),
                                    transitions={'found': 'GO_TO_LIVING_ROOM', 'not_found': 'GO_LOBBY_RETRY', 'preempted': 'preempted'})
 
-            # Go to E because search failed, then restart at GO_A
+            # F -> E -> A -> B ...
             smach.StateMachine.add('GO_LOBBY_RETRY', GoToRoomState('E'),
                                    transitions={'succeeded': 'GO_A', 'aborted': 'GO_A', 'preempted': 'preempted'})
 

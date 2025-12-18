@@ -14,6 +14,10 @@ from second_coursework.msg import CheckRulesAction, CheckRulesResult
 from rules.states.navigation import WaitState, GoToRoomState
 from rules.states.detection import CheckRoomState
 
+
+
+
+
 class CheckRulesServer:
     def __init__(self):
         self.server = actionlib.SimpleActionServer('/check_rules', CheckRulesAction, execute_cb=self.execute_cb, auto_start=False)
@@ -34,23 +38,26 @@ class CheckRulesServer:
 
 
 
+
+
+
+
         def shutdown_hook():
             rospy.logwarn("[CheckRules] Prempting Starting... Ctrl C")
             sm.request_preempt()
         rospy.on_shutdown(shutdown_hook)
 
         with sm:
-            # 1. Wait (Start)
+            # 1. Start  - Wait
             smach.StateMachine.add('WAIT_INIT', WaitState(10), 
                                    transitions={'succeeded': 'GO_KITCHEN', 'preempted': 'preempted'})
 
-            # 2. Go to Kitchen
+            # 2. Go to Kitchen (f)
             smach.StateMachine.add('GO_KITCHEN', GoToRoomState('F'),
                                    transitions={'succeeded': 'CHECK_KITCHEN', 
                                                 'aborted': 'RETRY_WAIT_F', 
                                                 'preempted': 'preempted'})
             
-            # Retry Wait State (Kitchen)
             smach.StateMachine.add('RETRY_WAIT_F', WaitState(2.0),
                                    transitions={'succeeded': 'GO_KITCHEN', 'preempted': 'preempted'})
 

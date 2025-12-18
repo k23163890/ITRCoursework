@@ -15,6 +15,13 @@ ROOM_COORDS = {
     "F": (10.0, 3.8, 0.0),
 }
 
+
+
+
+
+
+
+
 class WaitState(smach.State):
     def __init__(self, duration=10.0):
         smach.State.__init__(self, outcomes=['succeeded', 'preempted'])
@@ -34,6 +41,15 @@ class WaitState(smach.State):
             return 'preempted'
             
         return 'succeeded'
+    
+
+
+
+
+
+
+
+
 
 class GoToRoomState(SimpleActionState):
     def __init__(self, room_letter):
@@ -59,8 +75,8 @@ class GoToRoomState(SimpleActionState):
         target.target_pose.pose.position.x = x
         target.target_pose.pose.position.y = y
         
-        q = quaternion_from_euler(0, 0, theta)
-        target.target_pose.pose.orientation = Quaternion(*q)
+        quat = quaternion_from_euler(0, 0, theta)
+        target.target_pose.pose.orientation = Quaternion(*quat)
         
         rospy.loginfo(f"[Navigation] Going to Room {self.room_letter} ({x}, {y})")
         return target
